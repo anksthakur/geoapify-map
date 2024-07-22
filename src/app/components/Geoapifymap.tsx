@@ -15,7 +15,7 @@ const Geoapifymap = () => {
 
   const getApiData = async (query: string) => {
     try {
-      const apiKey = process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY; // Get API key from environment variables
+      const apiKey = process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY; 
       const res = await axios.get(`https://api.geoapify.com/v1/geocode/search?text=${query}&apiKey=${apiKey}`);
       console.log("data ", res.data); 
       setData(res.data); 

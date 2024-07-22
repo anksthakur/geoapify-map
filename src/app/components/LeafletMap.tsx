@@ -21,11 +21,32 @@ const LeafletMap = ({ data }: { data: any }) => {
         const location = data.features[0];
         const { lat, lon } = location.properties; // Extract latitude and longitude from properties
 
+        // Extract address details
+        const addressLine1 = location.properties.address_line1 || '';
+        const addressLine2 = location.properties.address_line2 || '';
+        const state = location.properties.state || '';
+        const country = location.properties.country || '';
+        const latitude = location.properties.lat || "" ;
+        const longitude = location.properties.lon || "" ;
+
         // Update the map view to the location's coordinates with a zoom level of 18
         map.setView([lat, lon], 18);
 
-        // Add a marker to the map at the location's coordinates
-        L.marker([lat, lon]).addTo(map);
+        // Create a marker and add it to the map
+        const marker = L.marker([lat, lon]).addTo(map);
+
+        // Bind a popup to the marker with address details
+        marker.bindPopup(`
+          <div>
+            <strong>Address:</strong><br/>
+            ${addressLine1}<br/>
+            ${addressLine2}<br/>
+            ${state}<br/>
+            ${country}<br/>
+            ${latitude}<br/>
+            ${longitude}
+          </div>
+        `);
       }
 
       // Cleanup function to remove the map instance on component unmount
