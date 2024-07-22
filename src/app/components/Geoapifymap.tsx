@@ -1,9 +1,9 @@
 "use client";
-
+import axios from "axios";
 import React, { useState } from "react";
 import dynamic from "next/dynamic";
 import "leaflet/dist/leaflet.css"; 
-import { name } from "./Fetch";
+
 
 // Dynamically import the LeafletMap component to ensure it's only rendered on the client side
 const LeafletMap = dynamic(() => import("./LeafletMap"), {
@@ -11,26 +11,26 @@ const LeafletMap = dynamic(() => import("./LeafletMap"), {
 });
 
 const Geoapifymap = () => {
-  const [data, setData] = useState<any>(null); 
+  const [data, setData] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   const getApiData = async (query: string) => {
     try {
       const apiKey = process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY; 
-      let url = `https://api.geoapify.com/v1/geocode/search?text=${query}&apiKey=${apiKey}`;
-      let res = await name(url);
-      console.log("data ", res);
-      setData(res); 
+      const res = await axios.get(`https://api.geoapify.com/v1/geocode/search?text=${query}&apiKey=${apiKey}`);
+      console.log("data ", res.data); 
+      setData(res.data); 
     } catch (error) {
       console.error(error); 
     }
   };
 
+  // Handler function to manage form submission
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+    e.preventDefault(); // Prevent default form submission behavior
     if (searchQuery) {
       console.log("enter Data ", searchQuery);
-      getApiData(searchQuery);
+      getApiData(searchQuery); // Fetch data if the search query is not empty  
     }
   };
 
