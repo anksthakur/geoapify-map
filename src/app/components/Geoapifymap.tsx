@@ -38,16 +38,15 @@ const Geoapifymap = () => {
 
   const getSuggestions = async (query: string) => {
     try {
-      const apiKey = process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY;
-      const encodedQuery = encodeURIComponent(query);
-      const res = await axios.get(`https://api.geoapify.com/v1/geocode/search?text=${encodedQuery}&apiKey=${apiKey}`);
+      const res = await axios.get(`/api/geoapify?query=${query}`);
       setSuggestions(res.data.features); // Update suggestions based on API response
-    } catch (error) {
-      console.error(error);
+    } catch (error:any) {
+      console.error("Error fetching suggestions:", error.response?.data || error.message);
     }
   };
 
   const handleSuggestionClick = (location: any) => {
+    console.log("Suggestion clicked:", location); // Debugging line
     setSearchQuery(location.properties.address_line1 || location.properties.state || location.properties.country);
     setData({ features: [location] }); // Update map data with the selected location
     setSuggestions([]); // Hide suggestions

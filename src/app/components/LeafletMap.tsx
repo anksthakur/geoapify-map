@@ -8,17 +8,22 @@ const LeafletMap = ({ data }: { data: any }) => {
 
   useEffect(() => {
     if (typeof window !== "undefined" && !mapRef.current) {
+      console.log("Initializing map...");
+
       const map = L.map("map").setView([51.505, -0.09], 15);
       mapRef.current = map;
 
-      L.tileLayer(`https://maps.geoapify.com/v1/tile/osm-carto/{z}/{x}/{y}.png?apiKey=${process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY}`, {
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         maxZoom: 25,
       }).addTo(map);
+
+      console.log("Map initialized");
     }
 
     return () => {
       if (mapRef.current) {
+        console.log("Cleaning up map...");
         mapRef.current.remove();
         mapRef.current = null;
       }
@@ -26,16 +31,22 @@ const LeafletMap = ({ data }: { data: any }) => {
   }, []);
 
   useEffect(() => {
+    console.log("Data updated:", data);
+
     if (data && data.features && data.features.length > 0) {
       const location = data.features[0];
       const { lat, lon } = location.properties;
       
+      console.log("Location data:", location.properties);
+
       setPosition([lat, lon]);
 
       if (mapRef.current) {
         const map = mapRef.current;
+        
         map.eachLayer(layer => {
           if (layer instanceof L.Marker) {
+            console.log("Removing old marker...");
             map.removeLayer(layer); // Remove old markers
           }
         });
@@ -52,21 +63,27 @@ const LeafletMap = ({ data }: { data: any }) => {
             ${location.properties.lon || ''}
           </div>
         `).openPopup();
+
+        console.log("New marker added at:", [lat, lon]);
       }
+    } else {
+      console.log("No valid location data found.");
     }
   }, [data]);
 
   useEffect(() => {
+    console.log("Position updated:", position);
+
     if (position && mapRef.current) {
       const map = mapRef.current;
 
-      // Zoom out to a wider view and then zoom in to the new position
       map.setZoom(15);
       map.panTo(map.getCenter());
 
       setTimeout(() => {
+        console.log("Setting new view...");
         map.setView(position, 18, { animate: true });
-      }, 900); // Short delay to transition smoothly between zoom levels
+      }, 900);
     }
   }, [position]);
 
