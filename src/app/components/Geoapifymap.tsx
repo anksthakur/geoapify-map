@@ -13,7 +13,6 @@ const Geoapifymap = () => {
   const [data, setData] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [suggestions, setSuggestions] = useState<any[]>([]);
-  const [selectedLocation, setSelectedLocation] = useState<any>(null);
   const [isSearching, setIsSearching] = useState<boolean>(false);
 
   useEffect(() => {
@@ -35,18 +34,9 @@ const Geoapifymap = () => {
     }
   };
 
-  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault(); // Prevent default form submission behavior
-    if (selectedLocation) {
-      setData({ features: [selectedLocation] });
-      setSuggestions([]); // Hide suggestions after search
-      setIsSearching(true); // Set flag to prevent suggestions from showing
-    }
-  };
-
   const handleSuggestionClick = (location: any) => {
-    setSelectedLocation(location); // Set the selected location
     setSearchQuery(location.properties.address_line1 || location.properties.state || location.properties.country);
+    setData({ features: [location] }); // Update map data with the selected location
     setSuggestions([]); // Hide suggestions
     setIsSearching(true); // Set flag to prevent suggestions from showing
   };
@@ -59,7 +49,7 @@ const Geoapifymap = () => {
             <h1 className="text-xl md:text-2xl lg:text-3xl">Geoapify Map</h1>
           </div>
           <div className="input1 mt-4 mb-4">
-            <form onSubmit={handleSearch} className="flex flex-col items-center">
+            <form className="flex flex-col items-center">
               <input 
                 type="text" 
                 placeholder="Search" 
@@ -71,12 +61,6 @@ const Geoapifymap = () => {
                 }} 
                 className="border p-2 rounded w-full md:w-2/3 lg:w-1/2 xl:w-1/3"
               />
-              <button 
-                type="submit" 
-                className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-              >
-                Search
-              </button>
             </form>
             {suggestions.length > 0 && !isSearching && (
               <ul className="mt-2 border border-gray-300 rounded w-full md:w-2/3 lg:w-1/2 xl:w-1/3">
