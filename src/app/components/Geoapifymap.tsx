@@ -1,6 +1,6 @@
 "use client";
 import axios from "axios";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import "leaflet/dist/leaflet.css";
 
@@ -14,13 +14,26 @@ const Geoapifymap = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState<boolean>(false);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null); // Ref to store the timeout ID
 
   useEffect(() => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current); // Clear the previous timeout
+    }
+
     if (searchQuery.length > 2 && !isSearching) {
-      getSuggestions(searchQuery);
+      debounceRef.current = setTimeout(() => {
+        getSuggestions(searchQuery);
+      }, 700); 
     } else if (searchQuery.length <= 2) {
       setSuggestions([]); // Clear suggestions if query is too short
     }
+
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current); // Cleanup timeout on unmount
+      }
+    };
   }, [searchQuery, isSearching]);
 
   const getSuggestions = async (query: string) => {
