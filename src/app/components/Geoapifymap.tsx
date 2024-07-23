@@ -18,7 +18,6 @@ const Geoapifymap = () => {
 
   useEffect(() => {
     if (searchQuery.length > 2 && !isSearching) {
-      // Fetch suggestions based on the search query
       getSuggestions(searchQuery);
     } else if (searchQuery.length <= 2) {
       setSuggestions([]); // Clear suggestions if query is too short
@@ -39,7 +38,6 @@ const Geoapifymap = () => {
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); // Prevent default form submission behavior
     if (selectedLocation) {
-      // Fetch data for the selected location and update the map
       setData({ features: [selectedLocation] });
       setSuggestions([]); // Hide suggestions after search
       setIsSearching(true); // Set flag to prevent suggestions from showing
@@ -71,7 +69,7 @@ const Geoapifymap = () => {
                   setSearchQuery(e.target.value);
                   setIsSearching(false); // Reset search flag when query changes
                 }} 
-                className="border p-2 rounded w-full md:w-1/2 lg:w-1/3"
+                className="border p-2 rounded w-full md:w-2/3 lg:w-1/2 xl:w-1/3"
               />
               <button 
                 type="submit" 
@@ -81,14 +79,14 @@ const Geoapifymap = () => {
               </button>
             </form>
             {suggestions.length > 0 && !isSearching && (
-              <ul className="mt-2 border border-gray-300 rounded w-full md:w-1/2 lg:w-1/3">
+              <ul className="mt-2 border border-gray-300 rounded w-full md:w-2/3 lg:w-1/2 xl:w-1/3">
                 {suggestions.map((location: any, index: number) => (
                   <li
                     key={index}
                     onClick={() => handleSuggestionClick(location)}
                     className="p-2 cursor-pointer hover:bg-gray-100"
                   >
-                    {location.properties.address_line1 || location.properties.state || location.properties.country}
+                    {location.properties.address_line1}, {location.properties.address_line2 || location.properties.state}, {location.properties.country} ({location.properties.postcode || location.properties.category})
                   </li>
                 ))}
               </ul>
