@@ -1,9 +1,8 @@
-"use client";
+"use client"
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import "leaflet/dist/leaflet.css"; 
-
+import "leaflet/dist/leaflet.css";
 
 // Dynamically import the LeafletMap component to ensure it's only rendered on the client side
 const LeafletMap = dynamic(() => import("./LeafletMap"), {
@@ -13,25 +12,42 @@ const LeafletMap = dynamic(() => import("./LeafletMap"), {
 const Geoapifymap = () => {
   const [data, setData] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [selectedLocation, setSelectedLocation] = useState<any>(null);
 
-  const getApiData = async (query: string) => {
+  useEffect(() => {
+    if (searchQuery.length > 2) {
+      // Fetch suggestions based on the search query
+      getSuggestions(searchQuery);
+    } else {
+      setSuggestions([]);
+    }
+  }, [searchQuery]);
+
+  const getSuggestions = async (query: string) => {
     try {
-      const apiKey = process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY; 
-      const res = await axios.get(`https://api.geoapify.com/v1/geocode/search?text=${query}&apiKey=${apiKey}`);
-      console.log("data ", res.data); 
-      setData(res.data); 
+      const apiKey = process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY;
+      const encodedQuery = encodeURIComponent(query);
+      const res = await axios.get(`https://api.geoapify.com/v1/geocode/search?text=${encodedQuery}&apiKey=${apiKey}`);
+      setSuggestions(res.data.features); // Update suggestions based on API response
     } catch (error) {
-      console.error(error); 
+      console.error(error);
     }
   };
 
-  // Handler function to manage form submission
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); // Prevent default form submission behavior
-    if (searchQuery) {
-      console.log("enter Data ", searchQuery);
-      getApiData(searchQuery); // Fetch data if the search query is not empty  
+    if (selectedLocation) {
+      // Fetch data for the selected location and update the map
+      setData({ features: [selectedLocation] });
+      setSuggestions([]); // Hide suggestions after search
     }
+  };
+
+  const handleSuggestionClick = (location: any) => {
+    setSelectedLocation(location); // Set the selected location
+    setSearchQuery(location.properties.address_line1 || location.properties.state || location.properties.country);
+    setSuggestions([]); // Hide suggestions
   };
 
   return (
@@ -58,6 +74,19 @@ const Geoapifymap = () => {
                 Search
               </button>
             </form>
+            {suggestions.length > 0 && (
+              <ul className="mt-2 border border-gray-300 rounded w-full md:w-1/2 lg:w-1/3">
+                {suggestions.map((location: any, index: number) => (
+                  <li
+                    key={index}
+                    onClick={() => handleSuggestionClick(location)}
+                    className="p-2 cursor-pointer hover:bg-gray-100"
+                  >
+                    {location.properties.address_line1 || location.properties.state || location.properties.country}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
           <div className="map mt-5">
             <LeafletMap data={data} />
