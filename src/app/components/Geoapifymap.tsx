@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import axios from "axios";
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
@@ -14,15 +14,16 @@ const Geoapifymap = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
+  const [isSearching, setIsSearching] = useState<boolean>(false);
 
   useEffect(() => {
-    if (searchQuery.length > 2) {
+    if (searchQuery.length > 2 && !isSearching) {
       // Fetch suggestions based on the search query
       getSuggestions(searchQuery);
-    } else {
-      setSuggestions([]);
+    } else if (searchQuery.length <= 2) {
+      setSuggestions([]); // Clear suggestions if query is too short
     }
-  }, [searchQuery]);
+  }, [searchQuery, isSearching]);
 
   const getSuggestions = async (query: string) => {
     try {
@@ -41,6 +42,7 @@ const Geoapifymap = () => {
       // Fetch data for the selected location and update the map
       setData({ features: [selectedLocation] });
       setSuggestions([]); // Hide suggestions after search
+      setIsSearching(true); // Set flag to prevent suggestions from showing
     }
   };
 
@@ -48,6 +50,7 @@ const Geoapifymap = () => {
     setSelectedLocation(location); // Set the selected location
     setSearchQuery(location.properties.address_line1 || location.properties.state || location.properties.country);
     setSuggestions([]); // Hide suggestions
+    setIsSearching(true); // Set flag to prevent suggestions from showing
   };
 
   return (
@@ -64,7 +67,10 @@ const Geoapifymap = () => {
                 placeholder="Search" 
                 name="search" 
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)} 
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setIsSearching(false); // Reset search flag when query changes
+                }} 
                 className="border p-2 rounded w-full md:w-1/2 lg:w-1/3"
               />
               <button 
@@ -74,7 +80,7 @@ const Geoapifymap = () => {
                 Search
               </button>
             </form>
-            {suggestions.length > 0 && (
+            {suggestions.length > 0 && !isSearching && (
               <ul className="mt-2 border border-gray-300 rounded w-full md:w-1/2 lg:w-1/3">
                 {suggestions.map((location: any, index: number) => (
                   <li
