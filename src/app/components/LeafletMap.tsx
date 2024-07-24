@@ -26,6 +26,7 @@ const LeafletMap = ({ data }: { data: GeoapifyResponse | null }) => {
   const mapRef = useRef<L.Map | null>(null);
   const [position, setPosition] = useState<[number, number] | null>(null);
   const [prevPosition, setPrevPosition] = useState<[number, number] | null>(null);
+  const [prevState, setPrevState] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined" && !mapRef.current) {
@@ -56,11 +57,12 @@ const LeafletMap = ({ data }: { data: GeoapifyResponse | null }) => {
 
     if (data && data.features && data.features.length > 0) {
       const location = data.features[0];
-      const { lat, lon } = location.properties;
+      const { lat, lon, state } = location.properties;
 
       // Convert lat and lon to number, defaulting to 0 if not present
       const latNumber = lat ? parseFloat(lat) : 0;
       const lonNumber = lon ? parseFloat(lon) : 0;
+      
 
       console.log("Location data:", location.properties);
 
@@ -83,12 +85,14 @@ const LeafletMap = ({ data }: { data: GeoapifyResponse | null }) => {
           });
         };
 
-        if (prevPosition) {
-          // Zoom out to the previous position
-          handleFlyTo(prevPosition[0], prevPosition[1], 5, 2); // Zoom out
+        if (prevPosition && prevState) {
+          if (prevState === state) {
+            // Move to the new position without zooming out and in
+            map.panTo([latNumber, lonNumber], {
+              animate: true,
+              duration: 2,
+            });
 
-          // Use Geoapify transitions (for demo, adjust as per actual Geoapify methods)
-          map.once('zoomend', () => {
             // Add a new marker at the new position
             const marker = L.marker([latNumber, lonNumber]).addTo(map);
             marker.bindPopup(`
@@ -104,10 +108,32 @@ const LeafletMap = ({ data }: { data: GeoapifyResponse | null }) => {
             `).openPopup();
 
             console.log("New marker added at:", [latNumber, lonNumber]);
+          } else {
+            // Zoom out to the previous position
+            handleFlyTo(prevPosition[0], prevPosition[1], 5, 2); // Zoom out
 
-            // Zoom in to the new position
-            handleFlyTo(latNumber, lonNumber, 15, 2); // Zoom in
-          });
+            // Use Geoapify transitions (for demo, adjust as per actual Geoapify methods)
+            map.once('zoomend', () => {
+              // Add a new marker at the new position
+              const marker = L.marker([latNumber, lonNumber]).addTo(map);
+              marker.bindPopup(`
+                <div>
+                  <strong>Address:</strong><br/>
+                  ${location.properties.address_line1 || ''}<br/>
+                  ${location.properties.address_line2 || ''}<br/>
+                  ${location.properties.state || ''}<br/>
+                  ${location.properties.country || ''}<br/>
+                  ${lat || ''}<br/>
+                  ${lon || ''}
+                </div>
+              `).openPopup();
+
+              console.log("New marker added at:", [latNumber, lonNumber]);
+
+              // Zoom in to the new position
+              handleFlyTo(latNumber, lonNumber, 15, 2); // Zoom in
+            });
+          }
         } else {
           // Add a new marker at the new position
           const marker = L.marker([latNumber, lonNumber]).addTo(map);
@@ -130,6 +156,7 @@ const LeafletMap = ({ data }: { data: GeoapifyResponse | null }) => {
         }
 
         setPrevPosition([latNumber, lonNumber]);
+        setPrevState(state);
       }
     } else {
       console.log("No valid location data found.");
