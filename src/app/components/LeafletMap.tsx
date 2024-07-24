@@ -131,7 +131,7 @@ const LeafletMap = ({ data }: { data: GeoapifyResponse | null }) => {
               console.log("New marker added at:", [latNumber, lonNumber]);
 
               // Zoom in to the new position
-              handleFlyTo(latNumber, lonNumber, 15, 2); // Zoom in
+              handleFlyTo(latNumber, lonNumber, 18, 2); // Zoom in
             });
           }
         } else {
